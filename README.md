@@ -1,6 +1,6 @@
 # 🧠 AI Knowledge Hub
 
-> **A modular RAG system that allows users to query document collections and databases using natural language and LLMs.**
+> **A modular RAG and Knowledge Management system that allows users to query document collections and databases using natural language and LLMs. Combines semantic search with Text-to-SQL for hybrid knowledge retrieval.**
 
 Built with **Groq (LLaMA 3.3-70b)**, **ChromaDB**, **HuggingFace Embeddings**, **FastAPI**, and **Streamlit**.
 
@@ -150,6 +150,17 @@ print("SQL used:", response["sql_query"])
 curl -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "Which customers are from Bogotá?"}'
+```
+
+**Expected response:**
+
+```json
+{
+  "answer": "There are 2 customers from Bogotá: Acme Corp and Sigma Analytics.",
+  "doc_sources": [],
+  "sql_query": "SELECT name, city FROM customers WHERE city = 'Bogotá'",
+  "query_type": "both"
+}
 ```
 
 ---
