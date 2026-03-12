@@ -61,6 +61,8 @@ flowchart TD
     J --> K
 
     K --> L[Answer]
+    M[LLM Abstraction Layer] --> K
+    M --> N[Groq · Ollama · OpenAI · Gemini]
 ```
 
 **Ingestion pipeline:**
@@ -122,9 +124,25 @@ streamlit run app.py
 ```
 
 The app has three pages:
-- **💬 Chat** — ask questions, ingest documents
+- **💬 Chat** — ask questions, ingest documents, select model and provider from the sidebar
 - **📊 Dashboard** — query evaluation history, scores, metric breakdown
 - **🔀 Model Comparator** — same question across Groq, Ollama, OpenAI, Gemini side-by-side
+
+#### Model selector
+The chat sidebar lets you switch provider and model without restarting the app:
+
+| Provider | Models available |
+|---|---|
+| **Groq** | llama-3.3-70b, llama-3.1-8b, mixtral-8x7b, gemma2-9b |
+| **Ollama** | llama3.2, mistral, gemma2, phi3 (local, no API key needed) |
+| **OpenAI** | gpt-4o-mini, gpt-4o, gpt-3.5-turbo |
+| **Gemini** | gemini-2.0-flash, gemini-1.5-pro, gemini-1.5-flash |
+
+Add optional keys to `.env` to unlock more providers:
+```
+OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=AIza...
+```
 
 ### 4b. Or run the REST API
 
