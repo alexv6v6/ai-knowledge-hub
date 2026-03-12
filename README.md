@@ -12,6 +12,14 @@ Built with **Groq (LLaMA 3.3-70b)**, **ChromaDB**, **HuggingFace Embeddings**, *
 
 ---
 
+## Screenshots
+
+| 💬 Chat | 📊 Dashboard |
+|---|---|
+| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) |
+
+---
+
 ## Problem
 
 Organizations store knowledge in two places that rarely talk to each other:
