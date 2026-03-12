@@ -247,11 +247,24 @@ ai-knowledge-hub/
 │   ├── ingest_documents.py      # Bulk ingestion script
 │   └── evaluate_prompts.py      # Prompt evaluation runner
 ├── data/raw/documents/          # Drop PDFs / TXTs here
+├── methodology/
+│   ├── ai-spec-driven-dev.md    # Full methodology description
+│   ├── module-design-template.md # Template for new modules
+│   └── evaluation-framework.md  # Evaluation metrics and results
 ├── example_query.py             # Runnable demo
 ├── app.py                       # Streamlit UI
 ├── architecture.md              # Full system design docs
+├── DEVELOPMENT_METHODOLOGY.md   # Methodology overview
 └── requirements.txt
 ```
+
+---
+
+## Development Methodology
+
+This project follows a **Spec-Driven AI Systems Development** approach — every module is defined, designed, implemented and evaluated through a repeatable 7-step process.
+
+See [`DEVELOPMENT_METHODOLOGY.md`](DEVELOPMENT_METHODOLOGY.md) for the full description.
 
 ---
 
