@@ -181,6 +181,43 @@ agent.ingest("https://example.com/documentation")
 
 ---
 
+## Prompt Engineering Module
+
+The system includes a structured prompt engineering module that applies core PE techniques:
+
+| Technique | Implementation |
+|---|---|
+| **Versioning** | Every prompt has `name`, `version`, `description` and `tags` |
+| **Few-shot** | `text_to_sql v2` includes 3 concrete question→SQL examples |
+| **Chain-of-Thought** | Agent prompts instruct the model to reason before answering |
+| **LLM-as-Judge** | Automated evaluation with 5 metrics scored 1–5 |
+| **Auto-optimization** | LLM generates improved prompt versions based on feedback |
+
+**Run evaluation:**
+
+```bash
+python scripts/evaluate_prompts.py
+```
+
+**Sample output:**
+```
+📊 Average score across 4 questions: 4.25/5.0
+⚠️  Weakest question (4.0/5.0): Which customers are from Bogotá?
+    Weakness: response lacks accuracy — fabricates data not in context
+💡 Suggestion: Run optimizer to generate an improved prompt version
+```
+
+**Use a specific prompt version in code:**
+
+```python
+from src.prompts.templates import get_prompt
+
+prompt = get_prompt("text_to_sql", "v2")       # specific version
+prompt = get_prompt("knowledge_agent_system", "latest")  # always latest
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -197,13 +234,18 @@ ai-knowledge-hub/
 │   │   └── rag_pipeline.py      # Hybrid RAG pipeline
 │   ├── agents/
 │   │   └── knowledge_agent.py   # Top-level agent (.ask() / .ingest())
-│   └── api/
-│       └── app.py               # FastAPI REST interface
+│   ├── api/
+│   │   └── app.py               # FastAPI REST interface
+│   └── prompts/
+│       ├── templates.py         # Versioned prompt library (v1, v2)
+│       ├── evaluator.py         # LLM-as-judge with 5 metrics
+│       └── optimizer.py         # Auto prompt improvement
 ├── tests/
 │   ├── test_ingestion.py
 │   └── test_retrieval.py
 ├── scripts/
-│   └── ingest_documents.py      # Bulk ingestion script
+│   ├── ingest_documents.py      # Bulk ingestion script
+│   └── evaluate_prompts.py      # Prompt evaluation runner
 ├── data/raw/documents/          # Drop PDFs / TXTs here
 ├── example_query.py             # Runnable demo
 ├── app.py                       # Streamlit UI
