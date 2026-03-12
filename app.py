@@ -152,6 +152,31 @@ with st.sidebar:
         st.error(f"Agent error: {e}")
 
     st.markdown("---")
+    st.markdown("**🤖 Model**")
+
+    PROVIDER_MODELS = {
+        "groq":   ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"],
+        "ollama": ["llama3.2", "mistral", "gemma2", "phi3"],
+        "openai": ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"],
+        "gemini": ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
+    }
+
+    selected_provider = st.selectbox(
+        "Provider",
+        list(PROVIDER_MODELS.keys()),
+        index=0,
+        key="chat_provider",
+        label_visibility="collapsed",
+    )
+    selected_model = st.selectbox(
+        "Model",
+        PROVIDER_MODELS[selected_provider],
+        index=0,
+        key="chat_model",
+        label_visibility="collapsed",
+    )
+
+    st.markdown("---")
     st.markdown("**📥 Ingest Document**")
 
     ingest_url = st.text_input("URL", placeholder="https://example.com/doc")
@@ -270,10 +295,14 @@ if send and user_input.strip():
     st.rerun()
 
 if "pending_query" in st.session_state:
-    query = st.session_state.pop("pending_query")
-    with st.spinner("🧠 Thinking..."):
+    query    = st.session_state.pop("pending_query")
+    provider = st.session_state.get("chat_provider", "groq")
+    model    = st.session_state.get("chat_model", "llama-3.3-70b-versatile")
+    with st.spinner(f"🧠 Thinking with {provider} / {model}..."):
         try:
-            result = agent.ask(query)
+            from src.llm.model_manager import ModelManager
+            mm = ModelManager(default_provider=provider, default_model=model)
+            result = agent.ask(query, llm=mm)
             st.session_state["messages"].append({
                 "role":    "assistant",
                 "content": result["answer"],

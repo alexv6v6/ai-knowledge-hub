@@ -8,6 +8,33 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _build_adapter(manager):
+    """Wrap a ModelManager so it matches the Groq client interface."""
+    class _Completions:
+        def create(self, model, messages, temperature=0.1, **kwargs):
+            prompt = messages[-1]["content"]
+            system = next((m["content"] for m in messages if m["role"] == "system"), None)
+            resp   = manager.generate(prompt, system=system, temperature=temperature)
+            text   = resp.content  # capture value before class definition
+
+            class _Msg:
+                def __init__(self, c): self.content = c
+            class _Choice:
+                def __init__(self, c): self.message = _Msg(c)
+            class _Resp:
+                def __init__(self, c): self.choices = [_Choice(c)]
+
+            return _Resp(text)
+
+    class _Chat:
+        completions = _Completions()
+
+    class _Adapter:
+        chat = _Chat()
+
+    return _Adapter()
+
+
 class KnowledgeAgent:
     """
     Unified knowledge agent combining:
@@ -35,8 +62,17 @@ class KnowledgeAgent:
         )
         print("✅ Knowledge Agent ready")
 
-    def ask(self, question: str) -> dict:
-        """Ask a question. Returns answer + metadata."""
+    def ask(self, question: str, llm=None) -> dict:
+        """
+        Ask a question. Returns answer + metadata.
+        Optionally pass a ModelManager instance to override the default LLM.
+        """
+        if llm is not None:
+            old_llm = self.pipeline.llm_client
+            self.pipeline.llm_client = _build_adapter(llm)
+            result = self.pipeline.query(question)
+            self.pipeline.llm_client = old_llm
+            return result
         return self.pipeline.query(question)
 
     def ingest(self, source: str):

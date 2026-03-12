@@ -121,9 +121,10 @@ python example_query.py
 streamlit run app.py
 ```
 
-The app has two pages:
+The app has three pages:
 - **💬 Chat** — ask questions, ingest documents
 - **📊 Dashboard** — query evaluation history, scores, metric breakdown
+- **🔀 Model Comparator** — same question across Groq, Ollama, OpenAI, Gemini side-by-side
 
 ### 4b. Or run the REST API
 
@@ -252,10 +253,18 @@ ai-knowledge-hub/
 │   │   ├── templates.py         # Versioned prompt library (v1, v2)
 │   │   ├── evaluator.py         # LLM-as-judge with 5 metrics
 │   │   └── optimizer.py         # Auto prompt improvement
-│   └── dashboard/
-│       └── stats_service.py     # Query history persistence
+│   ├── dashboard/
+│   │   └── stats_service.py     # Query history persistence
+│   └── llm/
+│       ├── base_llm.py          # Abstract LLM interface
+│       ├── groq_provider.py     # Groq (LLaMA, Mixtral)
+│       ├── ollama_provider.py   # Local models (Ollama)
+│       ├── openai_provider.py   # OpenAI (GPT-4o)
+│       ├── gemini_provider.py   # Google Gemini
+│       └── model_manager.py     # Central selector + parallel runner
 ├── pages/
-│   └── 📊_Dashboard.py          # Evaluation dashboard (Streamlit multipage)
+│   ├── 📊_Dashboard.py          # Evaluation dashboard (Streamlit multipage)
+│   └── 🔀_Model_Comparator.py   # Side-by-side model comparison
 ├── tests/
 │   ├── test_ingestion.py
 │   └── test_retrieval.py
