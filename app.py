@@ -280,6 +280,31 @@ if "pending_query" in st.session_state:
                 "sources": result.get("doc_sources", []),
                 "sql":     result.get("sql_query"),
             })
+            # ── Auto-evaluate in background ────────────────────────────────
+            try:
+                from src.prompts.evaluator import PromptEvaluator
+                from src.dashboard.stats_service import log_query
+                evaluator   = PromptEvaluator()
+                context     = " ".join(result.get("doc_sources", [])) + str(result.get("sql_query", ""))
+                eval_result = evaluator.evaluate(
+                    question=query,
+                    response=result["answer"],
+                    context=context,
+                    prompt_name="knowledge_agent_system",
+                    prompt_version="v2",
+                )
+                log_query(
+                    question=query,
+                    answer=result["answer"],
+                    query_type=result.get("query_type", "unknown"),
+                    scores=eval_result.scores,
+                    strengths=eval_result.strengths,
+                    weaknesses=eval_result.weaknesses,
+                    sql_query=result.get("sql_query"),
+                    doc_sources=result.get("doc_sources", []),
+                )
+            except Exception:
+                pass  # evaluation is non-blocking
         except Exception as e:
             st.session_state["messages"].append({
                 "role": "assistant", "content": f"⚠️ Error: {str(e)}", "sources": [], "sql": None,
