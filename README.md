@@ -113,6 +113,10 @@ python example_query.py
 streamlit run app.py
 ```
 
+The app has two pages:
+- **💬 Chat** — ask questions, ingest documents
+- **📊 Dashboard** — query evaluation history, scores, metric breakdown
+
 ### 4b. Or run the REST API
 
 ```bash
@@ -236,10 +240,14 @@ ai-knowledge-hub/
 │   │   └── knowledge_agent.py   # Top-level agent (.ask() / .ingest())
 │   ├── api/
 │   │   └── app.py               # FastAPI REST interface
-│   └── prompts/
-│       ├── templates.py         # Versioned prompt library (v1, v2)
-│       ├── evaluator.py         # LLM-as-judge with 5 metrics
-│       └── optimizer.py         # Auto prompt improvement
+│   ├── prompts/
+│   │   ├── templates.py         # Versioned prompt library (v1, v2)
+│   │   ├── evaluator.py         # LLM-as-judge with 5 metrics
+│   │   └── optimizer.py         # Auto prompt improvement
+│   └── dashboard/
+│       └── stats_service.py     # Query history persistence
+├── pages/
+│   └── 📊_Dashboard.py          # Evaluation dashboard (Streamlit multipage)
 ├── tests/
 │   ├── test_ingestion.py
 │   └── test_retrieval.py
@@ -252,11 +260,25 @@ ai-knowledge-hub/
 │   ├── module-design-template.md # Template for new modules
 │   └── evaluation-framework.md  # Evaluation metrics and results
 ├── example_query.py             # Runnable demo
-├── app.py                       # Streamlit UI
+├── app.py                       # Streamlit chat UI (main page)
 ├── architecture.md              # Full system design docs
 ├── DEVELOPMENT_METHODOLOGY.md   # Methodology overview
 └── requirements.txt
 ```
+
+---
+
+## Evaluation Dashboard
+
+The app includes a built-in evaluation dashboard accessible from the Streamlit sidebar.
+
+Every query is **automatically evaluated** after each response using LLM-as-judge, and the result is saved to a local log. The dashboard shows:
+
+- **KPI overview** — total queries, average score, best and worst
+- **Metric breakdown** — relevance, completeness, conciseness, accuracy, language match
+- **Score over time** — line chart showing quality trends
+- **Query type distribution** — docs vs SQL vs hybrid
+- **Weakest queries** — questions scoring below 4.0 with specific improvement notes
 
 ---
 
