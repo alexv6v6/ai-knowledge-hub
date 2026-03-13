@@ -44,19 +44,22 @@ Finding information requires knowing where to look and how to query it. This sys
 
 ```mermaid
 flowchart TD
-    A[👤 User] --> B[Streamlit UI]
+    A[User] --> B[Streamlit UI]
 
-    B --> C[💬 Chat]
-    B --> D[📊 Eval Dashboard]
-    B --> E[🔀 Model Comparator]
+    B --> C[Chat]
+    B --> D[Eval Dashboard]
+    B --> E[Model Comparator]
+    B -.->|REST| R[FastAPI]
 
     C --> F[Knowledge Agent]
     E --> F
+    R --> F
 
     F --> G[RAG Pipeline]
     F --> H[SQL Pipeline]
+    F --> P[Prompt Evaluator]
 
-    G --> I[ChromaDB\nVector Store]
+    G --> I[ChromaDB]
     H --> J[SQLite / PostgreSQL]
 
     G --> K[LLM Abstraction Layer]
@@ -67,12 +70,8 @@ flowchart TD
     K --> N[OpenAI]
     K --> O[Gemini]
 
-    F --> P[Prompt Evaluator\nLLM-as-Judge]
     P --> Q[Stats Service]
     Q --> D
-
-    B -.->|REST| R[FastAPI]
-    R --> F
 ```
 
 **Ingestion pipeline:**
