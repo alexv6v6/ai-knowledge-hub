@@ -42,7 +42,38 @@ Finding information requires knowing where to look and how to query it. This sys
 
 ## Architecture
 
-![Architecture](assets/architecture.svg)
+```mermaid
+flowchart TD
+    A[👤 User] --> B[Streamlit UI]
+
+    B --> C[💬 Chat]
+    B --> D[📊 Eval Dashboard]
+    B --> E[🔀 Model Comparator]
+
+    C --> F[Knowledge Agent]
+    E --> F
+
+    F --> G[RAG Pipeline]
+    F --> H[SQL Pipeline]
+
+    G --> I[ChromaDB\nVector Store]
+    H --> J[SQLite / PostgreSQL]
+
+    G --> K[LLM Abstraction Layer]
+    H --> K
+
+    K --> L[Groq]
+    K --> M[Ollama]
+    K --> N[OpenAI]
+    K --> O[Gemini]
+
+    F --> P[Prompt Evaluator\nLLM-as-Judge]
+    P --> Q[Stats Service]
+    Q --> D
+
+    B -.->|REST| R[FastAPI]
+    R --> F
+```
 
 **Ingestion pipeline:**
 
