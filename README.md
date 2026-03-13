@@ -14,9 +14,9 @@ Built with **Groq (LLaMA 3.3-70b)**, **ChromaDB**, **HuggingFace Embeddings**, *
 
 ## Screenshots
 
-| 💬 Chat | 📊 Dashboard |
-|---|---|
-| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) |
+| 💬 Chat | 📊 Dashboard | 🔀 Comparator |
+|---|---|---|
+| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) | ![Comparator](assets/compare.png) |
 
 ---
 
