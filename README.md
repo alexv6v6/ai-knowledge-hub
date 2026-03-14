@@ -1,6 +1,6 @@
 # 🧠 AI Knowledge Hub
 
-> **A modular RAG and Knowledge Management system that allows users to query document collections and databases using natural language and LLMs. Combines semantic search with Text-to-SQL for hybrid knowledge retrieval.**
+> **A modular RAG and Knowledge Management system that allows users to query document collections and databases using natural language. Combines semantic search with Text-to-SQL for hybrid knowledge retrieval.**
 
 Built with **Groq (LLaMA 3.3-70b)**, **ChromaDB**, **HuggingFace Embeddings**, **FastAPI**, and **Streamlit**.
 
@@ -14,9 +14,9 @@ Built with **Groq (LLaMA 3.3-70b)**, **ChromaDB**, **HuggingFace Embeddings**, *
 
 ## Screenshots
 
-| 💬 Chat | 📊 Dashboard |
-|---|---|
-| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) |
+| 💬 Chat | 📊 Dashboard | 🔀 Model Comparator |
+|---|---|---|
+| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) | ![Comparator](assets/compare.png) |
 
 ---
 
@@ -42,17 +42,47 @@ Finding information requires knowing where to look and how to query it. This sys
 
 ## Architecture
 
-![Architecture](assets/architecture.svg)
+```mermaid
+flowchart TD
+    A[User] --> B[Streamlit UI]
+
+    B --> C[Chat]
+    B --> D[Eval Dashboard]
+    B --> E[Model Comparator]
+    B -.->|REST| R[FastAPI]
+
+    C --> F[Knowledge Agent]
+    E --> F
+    R --> F
+
+    F --> G[RAG Pipeline]
+    F --> H[SQL Pipeline]
+    F --> P[Prompt Evaluator]
+
+    G --> I[ChromaDB]
+    H --> J[SQLite / PostgreSQL]
+
+    G --> K[LLM Abstraction Layer]
+    H --> K
+
+    K --> L[Groq]
+    K --> M[Ollama]
+    K --> N[OpenAI]
+    K --> O[Gemini]
+
+    P --> Q[Stats Service]
+    Q --> D
+```
 
 **Ingestion pipeline:**
 
 ```mermaid
 flowchart LR
-    A[Documents\nPDF · TXT · URL] --> B[Loader]
+    A[Documents PDF / TXT / URL] --> B[Loader]
     B --> C[Cleaner]
-    C --> D[Chunker\n500 words · 50 overlap]
-    D --> E[Embeddings\nMiniLM-L6-v2]
-    E --> F[ChromaDB\nVector Index]
+    C --> D[Chunker 500 words / 50 overlap]
+    D --> E[Embeddings MiniLM-L6-v2]
+    E --> F[ChromaDB Vector Index]
 ```
 
 ---
@@ -66,52 +96,6 @@ Each query is automatically routed to the right data source:
 | *"What does the manual say about X?"* | Documents | Semantic search → RAG |
 | *"How many products are in stock?"* | Database | Text-to-SQL |
 | *"Summarize our top customers"* | Both | Combined context |
-
----
-
-## Evaluation & Benchmarks
-
-This project includes a built-in evaluation framework that measures system performance automatically after every query.
-
-### Prompt Quality (LLM-as-Judge)
-
-Each response is scored across 5 metrics on a 1–5 scale:
-
-| Metric | Score | Description |
-|---|---|---|
-| Relevance | 4.2 / 5.0 | Does the response answer the question? |
-| Completeness | 4.1 / 5.0 | Are all parts of the question addressed? |
-| Accuracy | 4.0 / 5.0 | Are facts correct per the context? |
-| Conciseness | 4.3 / 5.0 | Is the response appropriately brief? |
-| Language Match | 4.8 / 5.0 | Does language match the query? |
-| **Overall** | **4.25 / 5.0** | Average across all metrics |
-
-### Model Latency Comparison
-
-Measured on equivalent queries (RAG + SQL hybrid):
-
-| Provider | Model | Avg Latency | Notes |
-|---|---|---|---|
-| Groq | llama-3.3-70b-versatile | ~800ms | Fastest cloud option |
-| Groq | llama-3.1-8b-instant | ~400ms | Best speed/quality ratio |
-| Groq | mixtral-8x7b | ~600ms | Strong reasoning |
-| Ollama | llama3.2 | ~2-5s | Local, no API cost |
-| OpenAI | gpt-4o-mini | ~1.2s | High accuracy |
-
-### Retrieval Accuracy
-
-| Query Type | Method | Accuracy |
-|---|---|---|
-| Document questions | Semantic RAG | High — grounded in ingested docs |
-| Structured data | Text-to-SQL | High — exact DB results |
-| Mixed queries | RAG + SQL combined | Medium-High — depends on context coverage |
-
-### Live Evaluation Dashboard
-
-Every query is evaluated automatically. The **📊 Dashboard** page shows:
-- Score trends over time
-- Per-metric breakdown
-- Weakest queries flagged for improvement
 
 ---
 
@@ -136,13 +120,7 @@ cp .env.example .env
 # GROQ_API_KEY=gsk_...
 ```
 
-### 3. Run example
-
-```bash
-python example_query.py
-```
-
-### 4. Run the app
+### 3. Run the app
 
 ```bash
 streamlit run app.py
@@ -169,7 +147,7 @@ OPENAI_API_KEY=sk-...
 GEMINI_API_KEY=AIza...
 ```
 
-### 4b. Or run the REST API
+### 4. Or run the REST API
 
 ```bash
 uvicorn src.api.app:app --reload
@@ -208,38 +186,60 @@ curl -X POST http://localhost:8000/ask \
   -d '{"question": "Which customers are from Bogotá?"}'
 ```
 
-**Expected response:**
+---
 
-```json
-{
-  "answer": "There are 2 customers from Bogotá: Acme Corp and Sigma Analytics.",
-  "doc_sources": [],
-  "sql_query": "SELECT name, city FROM customers WHERE city = 'Bogotá'",
-  "query_type": "both"
-}
-```
+## Evaluation & Benchmarks
+
+This project includes a built-in evaluation framework that measures system performance automatically after every query.
+
+### Prompt Quality (LLM-as-Judge)
+
+Each response is scored across 5 metrics on a 1–5 scale:
+
+| Metric | Score | Description |
+|---|---|---|
+| Relevance | 4.2 / 5.0 | Does the response answer the question? |
+| Completeness | 4.1 / 5.0 | Are all parts of the question addressed? |
+| Accuracy | 4.0 / 5.0 | Are facts correct per the context? |
+| Conciseness | 4.3 / 5.0 | Is the response appropriately brief? |
+| Language Match | 4.8 / 5.0 | Does language match the query? |
+| **Overall** | **4.25 / 5.0** | Average across all metrics |
+
+### Model Latency Comparison
+
+| Provider | Model | Avg Latency | Notes |
+|---|---|---|---|
+| Groq | llama-3.3-70b-versatile | ~800ms | Fastest cloud option |
+| Groq | llama-3.1-8b-instant | ~400ms | Best speed/quality ratio |
+| Groq | mixtral-8x7b | ~600ms | Strong reasoning |
+| Ollama | llama3.2 | ~2-5s | Local, no API cost |
+| OpenAI | gpt-4o-mini | ~1.2s | High accuracy |
+
+### Retrieval Accuracy
+
+| Query Type | Method | Accuracy |
+|---|---|---|
+| Document questions | Semantic RAG | High — grounded in ingested docs |
+| Structured data | Text-to-SQL | High — exact DB results |
+| Mixed queries | RAG + SQL combined | Medium-High — depends on context coverage |
 
 ---
 
-## Ingest Documents
+## Document Preparation
 
-Drop PDF or TXT files into `data/raw/documents/` then run:
+Before ingesting documents into the RAG pipeline, they must be processed through a validated 5-step preparation procedure. Skipping or shortcutting these steps directly degrades retrieval quality.
 
-```bash
-python scripts/ingest_documents.py
+```
+Raw Document → Plain Text → Section Structure → Normalization → Metadata → Semantic Chunks → Vector Index
 ```
 
-Or ingest a URL directly:
+Key finding: without metadata enrichment, **0% of retriever configurations** recovered the expected context. With metadata, **100%** did — regardless of retriever strategy.
 
-```python
-agent.ingest("https://example.com/documentation")
-```
+→ [Document Preparation SOP](methodology/document-preparation-sop.md)
 
 ---
 
 ## Prompt Engineering Module
-
-The system includes a structured prompt engineering module that applies core PE techniques:
 
 | Technique | Implementation |
 |---|---|
@@ -249,27 +249,8 @@ The system includes a structured prompt engineering module that applies core PE 
 | **LLM-as-Judge** | Automated evaluation with 5 metrics scored 1–5 |
 | **Auto-optimization** | LLM generates improved prompt versions based on feedback |
 
-**Run evaluation:**
-
 ```bash
 python scripts/evaluate_prompts.py
-```
-
-**Sample output:**
-```
-📊 Average score across 4 questions: 4.25/5.0
-⚠️  Weakest question (4.0/5.0): Which customers are from Bogotá?
-    Weakness: response lacks accuracy — fabricates data not in context
-💡 Suggestion: Run optimizer to generate an improved prompt version
-```
-
-**Use a specific prompt version in code:**
-
-```python
-from src.prompts.templates import get_prompt
-
-prompt = get_prompt("text_to_sql", "v2")       # specific version
-prompt = get_prompt("knowledge_agent_system", "latest")  # always latest
 ```
 
 ---
@@ -317,42 +298,18 @@ ai-knowledge-hub/
 ├── data/raw/documents/          # Drop PDFs / TXTs here
 ├── methodology/
 │   ├── ai-spec-driven-dev.md    # Full methodology description
-│   ├── module-design-template.md # Template for new modules
-│   └── evaluation-framework.md  # Evaluation metrics and results
-├── example_query.py             # Runnable demo
+│   ├── module-design-template.md
+│   ├── evaluation-framework.md
+│   └── document-preparation-sop.md  # RAG document preparation SOP
+├── assets/
+│   ├── chat.png
+│   ├── dashboard.png
+│   ├── compare.png
+│   └── architecture.svg
 ├── app.py                       # Streamlit chat UI (main page)
-├── architecture.md              # Full system design docs
 ├── DEVELOPMENT_METHODOLOGY.md   # Methodology overview
 └── requirements.txt
 ```
-
----
-
-## Evaluation Dashboard
-
-The app includes a built-in evaluation dashboard accessible from the Streamlit sidebar.
-
-Every query is **automatically evaluated** after each response using LLM-as-judge, and the result is saved to a local log. The dashboard shows:
-
-- **KPI overview** — total queries, average score, best and worst
-- **Metric breakdown** — relevance, completeness, conciseness, accuracy, language match
-- **Score over time** — line chart showing quality trends
-- **Query type distribution** — docs vs SQL vs hybrid
-- **Weakest queries** — questions scoring below 4.0 with specific improvement notes
-
----
-
-## Document Preparation
-
-Before ingesting documents into the RAG pipeline, they must be processed through a validated 5-step preparation procedure. Skipping or shortcutting these steps directly degrades retrieval quality.
-
-```
-Raw Document → Plain Text → Section Structure → Normalization → Metadata → Semantic Chunks → Vector Index
-```
-
-Key finding from empirical evaluation: without metadata enrichment, **0% of retriever configurations** recovered the expected context. With metadata, **100%** did — regardless of retriever strategy.
-
-→ [Document Preparation SOP](methodology/document-preparation-sop.md)
 
 ---
 
@@ -361,14 +318,6 @@ Key finding from empirical evaluation: without metadata enrichment, **0% of retr
 This project follows a **Spec-Driven AI Systems Development** approach — every module is defined, designed, implemented and evaluated through a repeatable 7-step process.
 
 See [`DEVELOPMENT_METHODOLOGY.md`](DEVELOPMENT_METHODOLOGY.md) for the full description.
-
----
-
-## Running Tests
-
-```bash
-pytest tests/ -v
-```
 
 ---
 
