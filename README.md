@@ -14,9 +14,9 @@ Built with **Groq (LLaMA 3.3-70b)**, **ChromaDB**, **HuggingFace Embeddings**, *
 
 ## Screenshots
 
-| 💬 Chat | 📊 Dashboard | 🔀 Comparator |
-|---|---|---|
-| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) | ![Comparator](assets/compare.png) |
+| 💬 Chat | 📊 Dashboard |
+|---|---|
+| ![Chat](assets/chat.png) | ![Dashboard](assets/dashboard.png) |
 
 ---
 
@@ -42,37 +42,7 @@ Finding information requires knowing where to look and how to query it. This sys
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[User] --> B[Streamlit UI]
-
-    B --> C[Chat]
-    B --> D[Eval Dashboard]
-    B --> E[Model Comparator]
-    B -.->|REST| R[FastAPI]
-
-    C --> F[Knowledge Agent]
-    E --> F
-    R --> F
-
-    F --> G[RAG Pipeline]
-    F --> H[SQL Pipeline]
-    F --> P[Prompt Evaluator]
-
-    G --> I[ChromaDB]
-    H --> J[SQLite / PostgreSQL]
-
-    G --> K[LLM Abstraction Layer]
-    H --> K
-
-    K --> L[Groq]
-    K --> M[Ollama]
-    K --> N[OpenAI]
-    K --> O[Gemini]
-
-    P --> Q[Stats Service]
-    Q --> D
-```
+![Architecture](assets/architecture.svg)
 
 **Ingestion pipeline:**
 
@@ -369,6 +339,20 @@ Every query is **automatically evaluated** after each response using LLM-as-judg
 - **Score over time** — line chart showing quality trends
 - **Query type distribution** — docs vs SQL vs hybrid
 - **Weakest queries** — questions scoring below 4.0 with specific improvement notes
+
+---
+
+## Document Preparation
+
+Before ingesting documents into the RAG pipeline, they must be processed through a validated 5-step preparation procedure. Skipping or shortcutting these steps directly degrades retrieval quality.
+
+```
+Raw Document → Plain Text → Section Structure → Normalization → Metadata → Semantic Chunks → Vector Index
+```
+
+Key finding from empirical evaluation: without metadata enrichment, **0% of retriever configurations** recovered the expected context. With metadata, **100%** did — regardless of retriever strategy.
+
+→ [Document Preparation SOP](methodology/document-preparation-sop.md)
 
 ---
 
