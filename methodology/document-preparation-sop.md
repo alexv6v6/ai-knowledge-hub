@@ -1,9 +1,17 @@
 # Document Preparation SOP for RAG Systems
 ## Procedimiento Estándar de Preparación de Documentos para RAG
 
-> **Based on empirical evaluation** comparing 5 document versions across 2 embedding models and 3 retriever strategies on a Spanish technical administrative document (CORPOCALDAS environmental procedures).
+## Scope / Alcance
+
+This SOP is intended for teams building RAG-based knowledge systems. It standardizes how documents must be prepared before indexing into a vector database. Following this procedure ensures consistent retrieval quality across different document types and domains.
+
+Este SOP está dirigido a equipos que construyen sistemas de conocimiento basados en RAG. Estandariza cómo deben prepararse los documentos antes de indexarlos en una base de datos vectorial. Seguir este procedimiento garantiza una calidad de recuperación consistente en diferentes tipos de documentos y dominios.
+
+---
+
+> This SOP defines a practical methodology derived from internal testing and practical RAG implementations, comparing 5 document versions across 2 embedding models and 3 retriever strategies.
 >
-> **Basado en evaluación empírica** comparando 5 versiones de documentos con 2 modelos de embeddings y 3 estrategias de recuperación sobre un documento técnico administrativo en español.
+> Este SOP define una metodología práctica derivada de pruebas internas e implementaciones prácticas de RAG, comparando 5 versiones de documentos con 2 modelos de embeddings y 3 estrategias de recuperación.
 
 ---
 
@@ -87,22 +95,41 @@ Vector Index (ChromaDB)
 
 ```json
 {
-  "section":   "section name / nombre de la sección",
-  "keywords":  ["term1", "term2", "term3"],
-  "process":   "business process name / nombre del proceso",
-  "doc_id":    "source document ID / ID del documento",
-  "language":  "es",
-  "version":   "2024-v1"
+  "section":       "section name / nombre de la sección",
+  "section_path":  "parent > child > section (e.g. Procedures > Water > Requirements)",
+  "keywords":      ["term1", "term2", "term3"],
+  "process":       "business process name / nombre del proceso",
+  "doc_id":        "source document ID / ID del documento",
+  "source":        "file path or URL of the original document",
+  "language":      "es",
+  "version":       "2024-v1",
+  "created_at":    "2024-01-15T10:00:00Z"
 }
 ```
 
+**Field reference:**
+
+| Field | Required | Description |
+|---|---|---|
+| `section` | Yes | Name of the section this chunk belongs to |
+| `section_path` | Yes | Full hierarchical path (e.g. `Manual > Chapter 2 > Requirements`) |
+| `keywords` | Yes | Key terms specific to this chunk — not the whole document |
+| `process` | Yes | Business process this chunk supports |
+| `doc_id` | Yes | Unique identifier of the source document |
+| `source` | Yes | File path or URL of the original document |
+| `language` | Yes | Content language (`es`, `en`, etc.) |
+| `version` | Yes | Document version |
+| `created_at` | Recommended | ISO 8601 timestamp of when the chunk was indexed |
+
 **Rules:**
-- All 6 fields are required — no partial metadata
-- `keywords` should reflect the specific terminology of that chunk, not the whole document
-- `process` maps the chunk to a business process (e.g., "Water Concession", "Environmental Permit")
+- All required fields must be populated — no partial metadata
+- `keywords` must reflect the specific terminology of each chunk, not the document as a whole
+- `section_path` enables filtering by document hierarchy in the retriever
+- `source` enables traceability — users can always find the original document
+- `created_at` enables cache invalidation and version management
 - The schema must be consistent across all documents in the knowledge base
 
-**Success criterion:** Every chunk has all 6 metadata fields populated.
+**Success criterion:** Every chunk has all required metadata fields populated with chunk-specific values.
 
 ---
 
@@ -138,8 +165,11 @@ DOCUMENT PREPARATION
 □ Repeated headers/footers removed
 
 METADATA
-□ Every chunk has all 6 metadata fields: section, keywords, process, doc_id, language, version
-□ Keywords reflect the specific terminology of each chunk
+□ Every chunk has all 9 metadata fields populated
+□ section_path reflects the full document hierarchy
+□ keywords reflect the specific terminology of each chunk
+□ source points to the original file or URL
+□ created_at is set to the indexing timestamp
 □ Metadata schema is consistent with all other documents in the knowledge base
 
 CHUNKING & INDEXING
@@ -199,12 +229,3 @@ RETRIEVER VALIDATION
 | English-only, general domain | `all-MiniLM-L6-v2` |
 | Low resource environment | `all-MiniLM-L6-v2` |
 | Production system, accuracy critical | `intfloat/multilingual-e5-small` |
-
----
-
-## Source / Fuente
-
-This SOP is based on the research paper:
-*"Impact of Document Preprocessing and Retriever Configuration on RAG System Performance"*
-Applied to the CORPOCALDAS intelligent assistant for environmental procedure management.
-Evaluation framework: RAGAS | Embedding models: all-MiniLM-L6-v2, intfloat/multilingual-e5-small | Vector store: ChromaDB | LLM: Qwen/Qwen1.5-4B
